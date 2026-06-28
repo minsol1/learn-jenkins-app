@@ -56,6 +56,7 @@ pipeline{
                     node_modules/.bin/netlify --version
                     echo "배포중 사이트 아이디 : $4a55c6ac-41cb-4cdc-b5c4-3d54ae962a1b"
                     node_modules/.bin/netlify status
+                    node_modules/.bin/netlify deploy --dir=build --prod
                 '''
             }
         }
