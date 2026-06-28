@@ -63,9 +63,12 @@ pipeline{
         }
 
         stage('Approval'){
-            timeout(1) {
-                input message: '운영환경에 배포할까요? ', ok: '네, 배포합니다.'
+            steps{
+                timeout(1) {
+                    input message: '운영환경에 배포할까요? ', ok: '네, 배포합니다.'
+                }
             }
+            
             
         }
 
