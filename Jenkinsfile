@@ -1,10 +1,5 @@
 pipeline{
-    agent{
-                docker{
-                    image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
-                    reuseNode true
-                }
-            }
+    agent none
 
     environment{
         NETLIFY_SITE_ID = '4a55c6ac-41cb-4cdc-b5c4-3d54ae962a1b'
@@ -12,9 +7,26 @@ pipeline{
     }
 
     stages{
+        stage ('AWS'){
+            agent {
+                docker {
+                    image 'amazon/aws-cli'
+                    args "--entrypoint=''"
+                }
+            }
+
+            steps {
+                sh 'aws --version'
+            }
+
+        }
         stage ('Build'){
 
-            
+            agent{
+                docker{
+                    image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
+                }
+            }
 
             steps{
                 sh '''
@@ -31,6 +43,11 @@ pipeline{
         }
 
         stage ('Test'){
+            agent{
+                docker{
+                    image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
+                }
+            }
             steps{
                 echo 'Test stage'
                 sh '''
@@ -41,6 +58,12 @@ pipeline{
             }
         }
         stage('E2E'){
+            agent{
+                docker{
+                    image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
+                }
+            }
+
             steps{
                 sh'''
                     npm install serve
@@ -51,18 +74,23 @@ pipeline{
 
         }
         stage('Deploy staging'){
+            agent{
+                docker{
+                    image 'node:18-bullseye'
+                }
+            }
+
             steps{
                 sh '''
                     npm install netlify-cli@20.1.1
-                    node_modules/.bin/netlify --version
-                    echo "배포중 스테이징 사이트 아이디 : $4a55c6ac-41cb-4cdc-b5c4-3d54ae962a1b"
-                    node_modules/.bin/netlify status
                     node_modules/.bin/netlify deploy --dir=build
                 '''
             }
         }
 
         stage('Approval'){
+            agent none 
+
             steps{
                 timeout(1) {
                     input message: '운영환경에 배포할까요? ', ok: '네, 배포합니다.'
@@ -73,6 +101,11 @@ pipeline{
         }
 
         stage('Deploy prod'){
+            agent{
+                docker{
+                    image 'node:18-bullseye'
+                }
+            }
             steps{
                 sh '''
                     npm install netlify-cli@20.1.1
@@ -85,6 +118,11 @@ pipeline{
         }
 
         stage ('Prod E2E'){
+            agent{
+                docker{
+                    image 'mcr.microsoft.com/playwright:v1.39.0-jammy'
+                }
+            }
 
             environment{
                 CI_ENVIRONMENT_URL = 'https://benevolent-cascaron-4fc37a.netlify.app'
